@@ -1,12 +1,24 @@
 from fastapi import APIRouter, HTTPException
 from app.models import ListingCreate, ListingResponse, ParseRequest
 from app.config import supabase
+from app.services.parser import parse_listing as ai_parse
 
 router = APIRouter(prefix="/listings", tags=["listings"])
 
 @router.post("/parse")
 def parse_listing(request: ParseRequest):
-    return {"raw_text": request.raw_text, "parsed": {}}
+    if not request.raw_text.strip():
+        raise HTTPException(status_code=400, detail="raw_text cannot be empty")
+    
+    result = ai_parse(request.raw_text)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=result["error"])
+    
+    return {
+        "raw_text": request.raw_text,
+        "parsed": result["data"]
+    }
 
 @router.post("/", response_model=ListingResponse)
 def create_listing(listing: ListingCreate):
