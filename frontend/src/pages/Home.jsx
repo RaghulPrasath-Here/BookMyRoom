@@ -99,7 +99,7 @@ export default function Home() {
           fontSize: "18px", color: "#717171",
           margin: "0 auto 40px", maxWidth: "500px", lineHeight: "1.6"
         }}>
-          Real listings from WhatsApp & Facebook groups,<br />searchable in one place
+          Real listings searchable in one place
         </p>
 
         <div style={{ display: "flex", justifyContent: "center" }}>
