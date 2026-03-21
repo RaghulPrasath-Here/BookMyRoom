@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
 import SearchBar from "../components/SearchBar";
 import ListingCard from "../components/ListingCard";
 import SkeletonCard from "../components/SkeletonCard";
@@ -13,30 +12,22 @@ export default function Home() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    fetchListings();
-  }, []);
+  useEffect(() => { fetchListings(); }, []);
 
   const fetchListings = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true); setError(null);
       const res = await fetch(`${API_BASE}/listings/`);
       const data = await res.json();
       setListings(data.listings || []);
-    } catch {
-      setError("Failed to load listings. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError("Failed to load listings."); }
+    finally { setLoading(false); }
   };
 
   const handleSearch = async ({ query }) => {
     if (!query.trim()) return fetchListings();
     try {
-      setSearchLoading(true);
-      setIsSearching(true);
-      setSearchQuery(query);
+      setSearchLoading(true); setIsSearching(true); setSearchQuery(query);
       const res = await fetch(`${API_BASE}/search/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -44,11 +35,8 @@ export default function Home() {
       });
       const data = await res.json();
       setListings(data.results || []);
-    } catch {
-      setError("Search failed. Please try again.");
-    } finally {
-      setSearchLoading(false);
-    }
+    } catch { setError("Search failed."); }
+    finally { setSearchLoading(false); }
   };
 
   return (
@@ -61,55 +49,56 @@ export default function Home() {
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         * { box-sizing: border-box; }
+        .listings-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 20px;
+        }
+        @media (max-width: 600px) {
+          .listings-grid { grid-template-columns: 1fr; }
+        }
       `}</style>
-
-      {/* <Navbar /> */}
 
       {/* Hero */}
       <div style={{
         background: "linear-gradient(160deg, #FFF1F2 0%, #FFFFFF 50%, #FFF8F0 100%)",
-        padding: "80px 24px",
-        textAlign: "center",
-        borderBottom: "1px solid #EBEBEB",
+        padding: "clamp(40px, 8vw, 80px) 16px 48px",
+        textAlign: "center", borderBottom: "1px solid #EBEBEB",
         animation: "fadeUp 0.6s ease both"
       }}>
-        <div style={{ marginBottom: "12px" }}>
-          <span style={{
-            background: "#FFF1F2", color: "#FF385C",
-            fontSize: "13px", fontWeight: "600",
-            padding: "6px 16px", borderRadius: "20px",
-            border: "1px solid #FFD6DC"
-          }}>
-            🇮🇪 Dublin's accommodation marketplace
-          </span>
-        </div>
+        <span style={{
+          background: "#FFF1F2", color: "#FF385C", fontSize: "12px",
+          fontWeight: "600", padding: "5px 14px", borderRadius: "20px",
+          border: "1px solid #FFD6DC", display: "inline-block"
+        }}>
+          🇮🇪 Dublin's accommodation marketplace
+        </span>
 
         <h1 style={{
-          fontSize: "clamp(32px, 5vw, 56px)",
-          fontWeight: "800", color: "#222222",
-          margin: "16px 0 12px", lineHeight: "1.15",
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          letterSpacing: "-1px"
+          fontSize: "clamp(28px, 7vw, 56px)", fontWeight: "800",
+          color: "#222222", margin: "16px 0 12px", lineHeight: "1.15",
+          fontFamily: "Georgia, serif", letterSpacing: "-1px"
         }}>
           Find your perfect<br />
           <span style={{ color: "#FF385C" }}>room in Dublin</span>
         </h1>
 
         <p style={{
-          fontSize: "18px", color: "#717171",
-          margin: "0 auto 40px", maxWidth: "500px", lineHeight: "1.6"
+          fontSize: "clamp(14px, 3vw, 18px)", color: "#717171",
+          margin: "0 auto 28px", maxWidth: "480px", lineHeight: "1.6"
         }}>
-          Real listings searchable in one place
+          Real listings from WhatsApp & Facebook groups,
+          searchable in one place
         </p>
 
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <div style={{ display: "flex", justifyContent: "center", padding: "0 4px" }}>
           <SearchBar onSearch={handleSearch} loading={searchLoading} />
         </div>
 
         {/* Stats */}
         <div style={{
           display: "flex", justifyContent: "center",
-          gap: "40px", marginTop: "40px", flexWrap: "wrap"
+          gap: "clamp(16px, 6vw, 48px)", marginTop: "28px", flexWrap: "wrap"
         }}>
           {[
             { label: "Active Listings", value: listings.length || "—" },
@@ -117,25 +106,31 @@ export default function Home() {
             { label: "AI Powered", value: "✓" }
           ].map(stat => (
             <div key={stat.label} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "24px", fontWeight: "700", color: "#222" }}>{stat.value}</div>
-              <div style={{ fontSize: "13px", color: "#717171" }}>{stat.label}</div>
+              <div style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: "700", color: "#222" }}>
+                {stat.value}
+              </div>
+              <div style={{ fontSize: "12px", color: "#717171" }}>{stat.label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Listings */}
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "40px 24px" }}>
+      {/* Listings section */}
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "28px 16px" }}>
         <div style={{
           display: "flex", justifyContent: "space-between",
-          alignItems: "center", marginBottom: "24px"
+          alignItems: "center", marginBottom: "18px",
+          flexWrap: "wrap", gap: "8px"
         }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: "22px", fontWeight: "700", color: "#222" }}>
+            <h2 style={{
+              margin: 0, fontSize: "clamp(17px, 4vw, 22px)",
+              fontWeight: "700", color: "#222"
+            }}>
               {isSearching ? `Results for "${searchQuery}"` : "Latest Listings"}
             </h2>
             {!loading && (
-              <p style={{ margin: "4px 0 0", fontSize: "14px", color: "#717171" }}>
+              <p style={{ margin: "3px 0 0", fontSize: "13px", color: "#717171" }}>
                 {listings.length} {listings.length === 1 ? "room" : "rooms"} found
               </p>
             )}
@@ -145,12 +140,12 @@ export default function Home() {
               onClick={() => { setIsSearching(false); fetchListings(); }}
               style={{
                 background: "none", border: "1px solid #EBEBEB",
-                borderRadius: "24px", padding: "8px 16px",
+                borderRadius: "24px", padding: "7px 14px",
                 fontSize: "13px", fontWeight: "600",
                 color: "#484848", cursor: "pointer"
               }}
             >
-              ✕ Clear search
+              ✕ Clear
             </button>
           )}
         </div>
@@ -158,24 +153,21 @@ export default function Home() {
         {error && (
           <div style={{
             background: "#FFF1F2", border: "1px solid #FFD6DC",
-            borderRadius: "12px", padding: "16px 20px",
-            color: "#E31C5F", marginBottom: "24px",
-            display: "flex", alignItems: "center", gap: "10px"
+            borderRadius: "12px", padding: "14px 16px",
+            color: "#E31C5F", marginBottom: "18px",
+            display: "flex", alignItems: "center",
+            justifyContent: "space-between", gap: "10px", flexWrap: "wrap"
           }}>
-            <span>⚠️</span> {error}
+            <span style={{ fontSize: "14px" }}>{error}</span>
             <button onClick={fetchListings} style={{
-              marginLeft: "auto", background: "#FF385C",
-              color: "white", border: "none", borderRadius: "8px",
-              padding: "6px 14px", fontSize: "13px", cursor: "pointer"
+              background: "#FF385C", color: "white", border: "none",
+              borderRadius: "8px", padding: "6px 14px",
+              fontSize: "13px", cursor: "pointer"
             }}>Retry</button>
           </div>
         )}
 
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-          gap: "24px"
-        }}>
+        <div className="listings-grid">
           {loading ? (
             Array(6).fill(0).map((_, i) => <SkeletonCard key={i} />)
           ) : listings.length > 0 ? (
@@ -185,18 +177,16 @@ export default function Home() {
               </div>
             ))
           ) : (
-            <div style={{
-              gridColumn: "1 / -1", textAlign: "center", padding: "80px 20px"
-            }}>
-              <div style={{ fontSize: "48px", marginBottom: "16px" }}>🏠</div>
-              <h3 style={{ color: "#222", fontSize: "20px", margin: "0 0 8px" }}>No rooms found</h3>
-              <p style={{ color: "#717171", margin: "0 0 24px" }}>
-                {isSearching ? "Try a different search" : "Be the first to post a listing!"}
+            <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px 16px" }}>
+              <div style={{ fontSize: "40px", marginBottom: "12px" }}>🏠</div>
+              <h3 style={{ color: "#222", fontSize: "18px", margin: "0 0 8px" }}>No rooms found</h3>
+              <p style={{ color: "#717171", margin: "0 0 20px", fontSize: "14px" }}>
+                {isSearching ? "Try a different search" : "Be the first to post!"}
               </p>
               <a href="/submit" style={{
-                background: "#FF385C", color: "white",
-                textDecoration: "none", padding: "12px 24px",
-                borderRadius: "24px", fontSize: "14px", fontWeight: "600"
+                background: "#FF385C", color: "white", textDecoration: "none",
+                padding: "12px 24px", borderRadius: "24px",
+                fontSize: "14px", fontWeight: "600"
               }}>
                 + Post a Room
               </a>
@@ -205,11 +195,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer */}
       <footer style={{
         borderTop: "1px solid #EBEBEB", background: "white",
-        padding: "32px 24px", textAlign: "center",
-        color: "#717171", fontSize: "13px"
+        padding: "24px 16px", textAlign: "center",
+        color: "#717171", fontSize: "12px"
       }}>
         <p style={{ margin: 0 }}>© 2026 BookMyRoom · Made for Dublin's rental community 🇮🇪</p>
       </footer>
