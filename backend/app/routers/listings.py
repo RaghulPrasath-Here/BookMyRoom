@@ -3,6 +3,8 @@ from app.models import ListingCreate, ParseRequest
 from app.config import supabase
 from app.services.parser import parse_listing as ai_parse
 from app.services.embeddings import generate_embedding
+from app.services.parser import geocode_location
+import asyncio
 
 router = APIRouter(prefix="/listings", tags=["listings"])
 
@@ -22,18 +24,22 @@ def parse_listing(request: ParseRequest):
     }
 
 @router.post("/")
-def create_listing(listing: ListingCreate):
+async def create_listing(listing: ListingCreate):
     try:
-        # Convert listing to dict
         listing_dict = listing.model_dump()
 
-        # Generate embedding from listing fields
+        # Generate embedding
         embedding = generate_embedding(listing_dict)
-
-        # Add embedding to the listing dict
         listing_dict["embedding"] = embedding
 
-        # Convert date to string for Supabase
+        # Geocode the location
+        if listing_dict.get("location") or listing_dict.get("dublin_area"):
+            location_text = listing_dict.get("location") or listing_dict.get("dublin_area")
+            coords = await geocode_location(location_text)
+            listing_dict["latitude"] = coords["latitude"]
+            listing_dict["longitude"] = coords["longitude"]
+
+        # Convert date to string
         if listing_dict.get("available_from"):
             listing_dict["available_from"] = str(listing_dict["available_from"])
 

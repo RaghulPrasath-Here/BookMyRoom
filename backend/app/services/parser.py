@@ -1,8 +1,12 @@
 from openai import OpenAI
 from app.config import OPENAI_API_KEY
 import json
+import httpx
+import os
 
 client = OpenAI(api_key=OPENAI_API_KEY)
+
+MAPBOX_TOKEN = os.getenv("MAPBOX_TOKEN")
 
 SYSTEM_PROMPT = """
 You are an expert at extracting structured information from informal 
@@ -61,3 +65,23 @@ def parse_listing(raw_text: str) -> dict:
         return {"success": False, "error": "AI returned invalid JSON", "raw": raw_response}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+async def geocode_location(location: str) -> dict:
+    """Convert location text to lat/lng using Mapbox Geocoding API"""
+    try:
+        query = f"{location}, Dublin, Ireland"
+        url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{query}.json"
+        async with httpx.AsyncClient() as client:
+            res = await client.get(url, params={
+                "access_token": MAPBOX_TOKEN,
+                "limit": 1,
+                "country": "IE"
+            })
+            data = res.json()
+            if data["features"]:
+                coords = data["features"][0]["geometry"]["coordinates"]
+                return {"longitude": coords[0], "latitude": coords[1]}
+    except Exception:
+        pass
+    return {"longitude": None, "latitude": None}

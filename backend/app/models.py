@@ -20,6 +20,8 @@ class ListingCreate(BaseModel):
     transport_links: Optional[List[str]] = []
     nearby_places: Optional[List[str]] = []
     contact: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 class ListingResponse(ListingCreate):
     id: str
