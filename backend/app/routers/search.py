@@ -5,6 +5,7 @@ from app.services.search import search_listings as vector_search
 router = APIRouter(prefix="/search", tags=["search"])
 
 @router.post("/")
+@limiter.limit("30/minute")  # max 30 searches per minute per IP
 def search(request: SearchRequest):
     try:
         results = vector_search(

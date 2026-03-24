@@ -5,10 +5,13 @@ from app.services.parser import parse_listing as ai_parse
 from app.services.embeddings import generate_embedding
 from app.services.parser import geocode_location
 import asyncio
+from app.limiter import limiter
+
 
 router = APIRouter(prefix="/listings", tags=["listings"])
 
 @router.post("/parse")
+@limiter.limit("10/minute")  # max 10 parses per minute per IP
 def parse_listing(request: ParseRequest):
     if not request.raw_text.strip():
         raise HTTPException(status_code=400, detail="raw_text cannot be empty")
@@ -24,6 +27,7 @@ def parse_listing(request: ParseRequest):
     }
 
 @router.post("/")
+@limiter.limit("20/minute")  # max 20 listings per minute per IP
 async def create_listing(listing: ListingCreate):
     try:
         listing_dict = listing.model_dump()
@@ -55,6 +59,7 @@ async def create_listing(listing: ListingCreate):
 
 @router.get("/")
 def get_listings(
+    request: Request,
     skip: int = 0,
     limit: int = 20,
     dublin_area: str = None,
