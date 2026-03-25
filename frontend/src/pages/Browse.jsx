@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ListingCard from "../components/ListingCard";
 import SkeletonCard from "../components/SkeletonCard";
 import { API_BASE } from "../constants";
+import { Helmet } from 'react-helmet-async'
 
 const DUBLIN_AREAS = [
   "All Areas", "Dublin 1", "Dublin 2", "Dublin 4", "Dublin 6",
@@ -225,6 +226,12 @@ export default function Browse() {
       minHeight: "calc(100vh - 68px)", background: "#F7F7F7",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }}>
+
+  <Helmet>
+  <title>Browse Listings — BookMyRoom</title>
+  <meta name="description" content="Browse all available rooms and accommodation in Dublin." />
+  </Helmet> 
+
       <style>{`
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }

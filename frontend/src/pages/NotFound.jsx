@@ -1,3 +1,5 @@
+import { Helmet } from 'react-helmet-async'
+
 export default function NotFound() {
   return (
     <div style={{
@@ -8,6 +10,10 @@ export default function NotFound() {
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       textAlign: "center"
     }}>
+
+  <Helmet>
+    <title>Page Not Found — BookMyRoom</title>
+  </Helmet>
       <style>{`
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(16px); }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API_BASE } from "../constants";
+import { Helmet } from 'react-helmet-async'
 
 const ROOM_TYPES = ["single", "double", "ensuite", "studio", "shared"];
 const GENDER_OPTIONS = ["any", "male", "female", "couple"];
@@ -280,6 +281,10 @@ export default function Confirm() {
       background: "#F7F7F7", padding: "48px 24px",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }}>
+
+  <Helmet>
+    <title>Review Listing — BookMyRoom</title>
+  </Helmet>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }

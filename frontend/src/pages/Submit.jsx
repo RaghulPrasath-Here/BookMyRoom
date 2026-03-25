@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../constants";
+import { Helmet } from 'react-helmet-async'
 
 const SAMPLE_LISTING = `Dublin 12, Permanent Sharing Accommodation Available (Double bed room with separate toilet) for a Female. Sharing room with a female student 🏠 preferably working professionals, 🚨 Move-in Date: Immediate. 🏢 2 BHK Apartment with 2 DOUBLE Bed Rooms and 2 Bathrooms kitchen and Balcony 📍 Location: within sight from Bluebell Luas stop 💰 Rent: €650 + bills 💰 Deposit: €500 (Refundable) 🚈 2-minute walk to Bluebell Luas stop ☎️ +353***46137`;
 
@@ -42,6 +43,10 @@ export default function Submit() {
       padding: "48px 24px",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }}>
+  <Helmet>
+  <title>Post a Room — BookMyRoom</title>
+  <meta name="description" content="Post your Dublin accommodation listing. Paste your WhatsApp message and AI will do the rest." />
+  </Helmet>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }

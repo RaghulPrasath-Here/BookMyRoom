@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Helmet } from 'react-helmet-async'
 
 export default function Success() {
   const location = useLocation();
@@ -27,6 +28,10 @@ export default function Success() {
       justifyContent: "center", padding: "40px 24px",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }}>
+
+  <Helmet>
+    <title>Listing Published — BookMyRoom</title>
+  </Helmet>
       <style>{`
         @keyframes popIn {
           0% { transform: scale(0.5); opacity: 0; }

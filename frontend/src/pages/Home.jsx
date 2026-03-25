@@ -3,6 +3,7 @@ import SearchBar from "../components/SearchBar";
 import ListingCard from "../components/ListingCard";
 import SkeletonCard from "../components/SkeletonCard";
 import { API_BASE } from "../constants";
+import { Helmet } from 'react-helmet-async'
 
 export default function Home() {
   const [listings, setListings] = useState([]);
@@ -12,7 +13,10 @@ export default function Home() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => { fetchListings(); }, []);
+  useEffect(() => {
+  fetch(`${API_BASE}/health`).catch(() => {});
+  fetchListings();
+}, []);
 
   const fetchListings = async () => {
     try {
@@ -44,6 +48,10 @@ export default function Home() {
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       background: "#F7F7F7", minHeight: "100vh"
     }}>
+    <Helmet>
+      <title>BookMyRoom — Find Rooms in Dublin</title>
+      <meta name="description" content="Search rooms and accommodation in Dublin from real WhatsApp and Facebook listings. AI-powered search." />
+    </Helmet>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }

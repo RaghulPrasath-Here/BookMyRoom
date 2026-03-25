@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { API_BASE } from "../constants";
+import { Helmet } from 'react-helmet-async'
 
 function Badge({ children, bg = "#F7F7F7", color = "#484848" }) {
   return (
@@ -199,6 +200,10 @@ export default function ListingDetail() {
       minHeight: "calc(100vh - 68px)", background: "#F7F7F7",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }}>
+    <Helmet>
+      <title>{listing.title} — BookMyRoom</title>
+      <meta name="description" content={`${listing.room_type} in ${listing.dublin_area}. €${listing.price}/month.`} />
+    </Helmet>
       <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }`}</style>
 
       {/* Hero */}
