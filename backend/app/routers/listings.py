@@ -1,34 +1,33 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from app.models import ListingCreate, ParseRequest
 from app.config import supabase
 from app.services.parser import parse_listing as ai_parse
 from app.services.embeddings import generate_embedding
-from app.services.parser import geocode_location
-import asyncio
 from app.limiter import limiter
-
 
 router = APIRouter(prefix="/listings", tags=["listings"])
 
+
 @router.post("/parse")
-@limiter.limit("10/minute")  # max 10 parses per minute per IP
-def parse_listing(request: ParseRequest):
-    if not request.raw_text.strip():
+@limiter.limit("10/minute")
+async def parse_listing(request: Request, body: ParseRequest):
+    if not body.raw_text.strip():
         raise HTTPException(status_code=400, detail="raw_text cannot be empty")
 
-    result = ai_parse(request.raw_text)
+    result = ai_parse(body.raw_text)
 
     if not result["success"]:
         raise HTTPException(status_code=500, detail=result["error"])
 
     return {
-        "raw_text": request.raw_text,
+        "raw_text": body.raw_text,
         "parsed": result["data"]
     }
 
+
 @router.post("/")
-@limiter.limit("20/minute")  # max 20 listings per minute per IP
-async def create_listing(listing: ListingCreate):
+@limiter.limit("20/minute")
+async def create_listing(request: Request, listing: ListingCreate):
     try:
         listing_dict = listing.model_dump()
 
@@ -36,14 +35,7 @@ async def create_listing(listing: ListingCreate):
         embedding = generate_embedding(listing_dict)
         listing_dict["embedding"] = embedding
 
-        # Geocode the location
-        if listing_dict.get("location") or listing_dict.get("dublin_area"):
-            location_text = listing_dict.get("location") or listing_dict.get("dublin_area")
-            coords = await geocode_location(location_text)
-            listing_dict["latitude"] = coords["latitude"]
-            listing_dict["longitude"] = coords["longitude"]
-
-        # Convert date to string
+        # Convert date to string for Supabase
         if listing_dict.get("available_from"):
             listing_dict["available_from"] = str(listing_dict["available_from"])
 
@@ -57,8 +49,9 @@ async def create_listing(listing: ListingCreate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/")
-def get_listings(
+async def get_listings(
     request: Request,
     skip: int = 0,
     limit: int = 20,
@@ -69,6 +62,7 @@ def get_listings(
         query = supabase.table("listings")\
             .select("id, title, price, bills_included, location, dublin_area, available_from, room_type, gender_preference, is_permanent, duration_months, contact, created_at")\
             .eq("is_active", True)\
+            .gt("expires_at", "now()")\
             .order("created_at", desc=True)
 
         if dublin_area:
@@ -84,12 +78,14 @@ def get_listings(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/{listing_id}")
-def get_listing(listing_id: str):
+async def get_listing(listing_id: str, request: Request):
     result = supabase.table("listings")\
         .select("*")\
         .eq("id", listing_id)\
         .eq("is_active", True)\
+        .gt("expires_at", "now()")\
         .execute()
 
     if not result.data:
