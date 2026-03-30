@@ -54,7 +54,7 @@ async def create_listing(request: Request, listing: ListingCreate):
 async def get_listings(
     request: Request,
     skip: int = 0,
-    limit: int = 20,
+    limit: int = 50,
     dublin_area: str = None,
     max_price: float = None,
 ):

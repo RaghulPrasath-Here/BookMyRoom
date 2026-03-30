@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { API_BASE } from "../constants";
-import { Helmet } from 'react-helmet-async'
+import { Helmet } from 'react-helmet-async';
 
 function Badge({ children, bg = "#F7F7F7", color = "#484848" }) {
   return (
@@ -46,13 +46,155 @@ function InfoRow({ label, value }) {
 function SkeletonDetail() {
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "24px 16px" }}>
-      <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
-      {[200, 160, 120, 200].map((h, i) => (
+      <style>{`@keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }`}</style>
+      {[240, 160, 120, 200].map((h, i) => (
         <div key={i} style={{
           height: `${h}px`, borderRadius: "16px", marginBottom: "16px",
-          background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)",
+          background: "linear-gradient(90deg,#F0F0F0 25%,#E8E8E8 50%,#F0F0F0 75%)",
           backgroundSize: "200% 100%", animation: "shimmer 1.5s infinite"
         }} />
+      ))}
+    </div>
+  );
+}
+
+function ShareButton() {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Check out this room on BookMyRoom", url });
+        return;
+      } catch { }
+    }
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button onClick={handleShare} style={{
+      display: "flex", alignItems: "center", gap: "6px",
+      background: copied ? "#F0FDF4" : "white",
+      border: copied ? "1.5px solid #BBF7D0" : "1.5px solid #EBEBEB",
+      borderRadius: "24px", padding: "8px 16px",
+      fontSize: "13px", fontWeight: "600",
+      color: copied ? "#16A34A" : "#484848",
+      cursor: "pointer", fontFamily: "inherit",
+      transition: "all 0.2s", flexShrink: 0
+    }}>
+      {copied ? (
+        <>
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          Copied!
+        </>
+      ) : (
+        <>
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          </svg>
+          Share listing
+        </>
+      )}
+    </button>
+  );
+}
+
+function SimilarListings({ currentId, area, roomType }) {
+  const [similar, setSimilar] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch_ = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/search/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: `${roomType} room in ${area}` })
+        });
+        const data = await res.json();
+        const filtered = (data.results || [])
+          .filter(l => l.id !== currentId)
+          .slice(0, 3);
+        setSimilar(filtered);
+      } catch {
+        setSimilar([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (area) fetch_();
+  }, [currentId, area, roomType]);
+
+  if (loading) return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "16px" }}>
+      {Array(3).fill(0).map((_, i) => (
+        <div key={i} style={{
+          height: "160px", borderRadius: "12px",
+          background: "linear-gradient(90deg,#F0F0F0 25%,#E8E8E8 50%,#F0F0F0 75%)",
+          backgroundSize: "200% 100%", animation: "shimmer 1.5s infinite"
+        }} />
+      ))}
+    </div>
+  );
+
+  if (similar.length === 0) return null;
+
+  const gradients = {
+    ensuite: "#667eea, #764ba2", studio: "#f093fb, #f5576c",
+    double: "#4facfe, #00f2fe", single: "#43e97b, #38f9d7", shared: "#fa709a, #fee140"
+  };
+  const emojis = { ensuite: "🛁", studio: "🏢", double: "🛏️", single: "🛏️", shared: "🏠" };
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "16px" }}>
+      {similar.map(item => (
+        <a key={item.id} href={`/listings/${item.id}`} style={{ textDecoration: "none" }}>
+          <div
+            style={{
+              background: "white", borderRadius: "14px",
+              border: "1px solid #EBEBEB", overflow: "hidden",
+              transition: "transform 0.2s, box-shadow 0.2s", cursor: "pointer"
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = "translateY(-3px)";
+              e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            <div style={{
+              height: "80px",
+              background: `linear-gradient(135deg, ${gradients[item.room_type] || "#4facfe, #00f2fe"})`,
+              display: "flex", alignItems: "center",
+              justifyContent: "center", fontSize: "28px"
+            }}>
+              {emojis[item.room_type] || "🏠"}
+            </div>
+            <div style={{ padding: "12px" }}>
+              <p style={{
+                margin: "0 0 4px", fontSize: "13px", fontWeight: "600", color: "#222",
+                overflow: "hidden", display: "-webkit-box",
+                WebkitLineClamp: 2, WebkitBoxOrient: "vertical", lineHeight: "1.3"
+              }}>
+                {item.title}
+              </p>
+              <p style={{ margin: "0 0 6px", fontSize: "12px", color: "#717171" }}>
+                📍 {item.dublin_area}
+              </p>
+              <p style={{ margin: 0, fontSize: "14px", fontWeight: "700", color: "#FF385C" }}>
+                €{item.price}
+                <span style={{ fontSize: "11px", fontWeight: "400", color: "#717171" }}>/mo</span>
+              </p>
+            </div>
+          </div>
+        </a>
       ))}
     </div>
   );
@@ -72,26 +214,19 @@ export default function ListingDetail() {
         setLoading(true);
         const res = await fetch(`${API_BASE}/listings/${id}`);
         if (!res.ok) throw new Error("Not found");
-        const data = await res.json();
-        setListing(data);
+        setListing(await res.json());
       } catch { setError("This listing could not be found."); }
       finally { setLoading(false); }
     };
     fetchListing();
-
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, [id]);
 
-  const gradientMap = {
-    ensuite: "#667eea, #764ba2", studio: "#f093fb, #f5576c",
-    double: "#4facfe, #00f2fe", single: "#43e97b, #38f9d7", shared: "#fa709a, #fee140",
-  };
-
-  const gradient = listing ? (gradientMap[listing.room_type] || "#4facfe, #00f2fe") : "#4facfe, #00f2fe";
-
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-IE", { day: "numeric", month: "long", year: "numeric" }) : null;
+  const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-IE", {
+    day: "numeric", month: "long", year: "numeric"
+  }) : null;
 
   const daysAgo = (d) => {
     if (!d) return "";
@@ -99,6 +234,11 @@ export default function ListingDetail() {
     if (diff === 0) return "Posted today";
     if (diff === 1) return "Posted yesterday";
     return `Posted ${diff} days ago`;
+  };
+
+  const gradientMap = {
+    ensuite: "#667eea, #764ba2", studio: "#f093fb, #f5576c",
+    double: "#4facfe, #00f2fe", single: "#43e97b, #38f9d7", shared: "#fa709a, #fee140",
   };
 
   if (loading) return <SkeletonDetail />;
@@ -112,7 +252,9 @@ export default function ListingDetail() {
     }}>
       <div style={{ fontSize: "48px" }}>🏚️</div>
       <h2 style={{ margin: 0, color: "#222" }}>Listing not found</h2>
-      <p style={{ color: "#717171", margin: 0, fontSize: "14px" }}>This listing may have expired or been removed.</p>
+      <p style={{ color: "#717171", margin: 0, fontSize: "14px" }}>
+        This listing may have expired or been removed.
+      </p>
       <a href="/" style={{
         background: "#FF385C", color: "white", textDecoration: "none",
         padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600"
@@ -120,12 +262,13 @@ export default function ListingDetail() {
     </div>
   );
 
+  const gradient = gradientMap[listing.room_type] || "#4facfe, #00f2fe";
+  const emoji = { ensuite: "🛁", studio: "🏢", double: "🛏️", single: "🛏️", shared: "🏠" }[listing.room_type] || "🏠";
+
   const ContactCard = () => (
     <div style={{
-      background: "white", borderRadius: "20px",
-      border: "1px solid #EBEBEB",
-      boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-      padding: "20px"
+      background: "white", borderRadius: "20px", border: "1px solid #EBEBEB",
+      boxShadow: "0 4px 24px rgba(0,0,0,0.08)", padding: "20px"
     }}>
       <h3 style={{ margin: "0 0 6px", fontSize: "17px", fontWeight: "700", color: "#222" }}>
         Interested?
@@ -135,17 +278,13 @@ export default function ListingDetail() {
       </p>
 
       {!contactRevealed ? (
-        <button
-          onClick={() => setContactRevealed(true)}
-          style={{
-            width: "100%",
-            background: "linear-gradient(135deg, #FF385C, #E31C5F)",
-            color: "white", border: "none", borderRadius: "12px",
-            padding: "14px", fontSize: "15px", fontWeight: "700",
-            cursor: "pointer", fontFamily: "inherit",
-            boxShadow: "0 4px 16px rgba(255,56,92,0.3)"
-          }}
-        >
+        <button onClick={() => setContactRevealed(true)} style={{
+          width: "100%",
+          background: "linear-gradient(135deg, #FF385C, #E31C5F)",
+          color: "white", border: "none", borderRadius: "12px", padding: "14px",
+          fontSize: "15px", fontWeight: "700", cursor: "pointer", fontFamily: "inherit",
+          boxShadow: "0 4px 16px rgba(255,56,92,0.3)"
+        }}>
           Show Contact
         </button>
       ) : (
@@ -180,7 +319,7 @@ export default function ListingDetail() {
       <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid #F0F0F0" }}>
         {[
           { label: "Monthly Rent", value: `€${listing.price}` },
-          listing.deposit && { label: "Deposit", value: `€${listing.deposit}` },
+          listing.deposit ? { label: "Deposit", value: `€${listing.deposit}` } : null,
           { label: "Bills", value: listing.bills_included ? "Included" : "Not included", green: listing.bills_included }
         ].filter(Boolean).map(row => (
           <div key={row.label} style={{
@@ -200,28 +339,28 @@ export default function ListingDetail() {
       minHeight: "calc(100vh - 68px)", background: "#F7F7F7",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }}>
-    <Helmet>
-      <title>{listing.title} — BookMyRoom</title>
-      <meta name="description" content={`${listing.room_type} in ${listing.dublin_area}. €${listing.price}/month.`} />
-    </Helmet>
-      <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      <Helmet>
+        <title>{listing.title} — BookMyRoom</title>
+        <meta name="description" content={`${listing.room_type} in ${listing.dublin_area}. €${listing.price}/month.`} />
+      </Helmet>
 
-      {/* Hero */}
+      <style>{`@keyframes fadeUp { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)} }`}</style>
+
+      {/* Hero banner */}
       <div style={{
         height: "clamp(160px, 30vw, 240px)",
         background: `linear-gradient(135deg, ${gradient})`,
-        display: "flex", alignItems: "center", justifyContent: "center", position: "relative"
+        display: "flex", alignItems: "center",
+        justifyContent: "center", position: "relative"
       }}>
         <span style={{ fontSize: "clamp(48px, 12vw, 72px)", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.15))" }}>
-          {listing.room_type === "ensuite" ? "🛁" : listing.room_type === "studio" ? "🏢" :
-           listing.room_type === "double" ? "🛏️" : "🏠"}
+          {emoji}
         </span>
         <a href="/" style={{
           position: "absolute", top: "16px", left: "16px",
           textDecoration: "none", background: "rgba(255,255,255,0.95)",
           color: "#222", borderRadius: "24px", padding: "7px 14px",
-          fontSize: "13px", fontWeight: "600",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
+          fontSize: "13px", fontWeight: "600", boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
         }}>← Back</a>
         <div style={{
           position: "absolute", top: "16px", right: "16px",
@@ -233,7 +372,10 @@ export default function ListingDetail() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "0 16px 60px", animation: "fadeUp 0.5s ease both" }}>
+      <div style={{
+        maxWidth: "800px", margin: "0 auto",
+        padding: "0 16px 60px", animation: "fadeUp 0.5s ease both"
+      }}>
 
         {/* Title card */}
         <div style={{
@@ -244,8 +386,7 @@ export default function ListingDetail() {
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "12px" }}>
             {listing.is_permanent
               ? <Badge bg="#ECFDF5" color="#065F46">Permanent</Badge>
-              : <Badge bg="#FFF7ED" color="#92400E">{listing.duration_months} months</Badge>
-            }
+              : <Badge bg="#FFF7ED" color="#92400E">{listing.duration_months} months</Badge>}
             {listing.room_type && (
               <Badge bg="#FFF1F2" color="#E31C5F">
                 {listing.room_type.charAt(0).toUpperCase() + listing.room_type.slice(1)}
@@ -259,13 +400,17 @@ export default function ListingDetail() {
             {listing.bills_included && <Badge bg="#F0FDF4" color="#16A34A">Bills included</Badge>}
           </div>
 
-          <h1 style={{
-            margin: "0 0 8px", fontSize: "clamp(20px, 5vw, 26px)",
-            fontWeight: "800", color: "#222222",
-            fontFamily: "Georgia, serif", lineHeight: "1.3"
-          }}>
-            {listing.title || "Room in Dublin"}
-          </h1>
+          {/* Title row with share button */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "8px" }}>
+            <h1 style={{
+              margin: 0, fontSize: "clamp(20px, 5vw, 26px)",
+              fontWeight: "800", color: "#222",
+              fontFamily: "Georgia, serif", lineHeight: "1.3"
+            }}>
+              {listing.title || "Room in Dublin"}
+            </h1>
+            <ShareButton />
+          </div>
 
           <p style={{ margin: "0 0 16px", fontSize: "14px", color: "#717171", display: "flex", alignItems: "center", gap: "5px" }}>
             <svg width="13" height="13" fill="#FF385C" viewBox="0 0 24 24">
@@ -288,12 +433,8 @@ export default function ListingDetail() {
           </div>
         </div>
 
-        {/* Mobile: contact card first */}
-        {isMobile && (
-          <div style={{ marginBottom: "16px" }}>
-            <ContactCard />
-          </div>
-        )}
+        {/* Mobile: contact first */}
+        {isMobile && <div style={{ marginBottom: "16px" }}><ContactCard /></div>}
 
         {/* Details + Desktop contact */}
         <div style={{
@@ -301,10 +442,8 @@ export default function ListingDetail() {
           gridTemplateColumns: isMobile ? "1fr" : "1fr 300px",
           gap: "16px", alignItems: "start"
         }}>
-          {/* Left: details */}
           <div style={{
-            background: "white", borderRadius: "20px",
-            border: "1px solid #EBEBEB",
+            background: "white", borderRadius: "20px", border: "1px solid #EBEBEB",
             boxShadow: "0 2px 12px rgba(0,0,0,0.04)", padding: "20px"
           }}>
             <Section title="Room Details">
@@ -327,9 +466,7 @@ export default function ListingDetail() {
             {listing.transport_links?.length > 0 && (
               <Section title="Transport Links">
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                  {listing.transport_links.map(t => (
-                    <Badge key={t} bg="#EFF6FF" color="#1D4ED8">{t}</Badge>
-                  ))}
+                  {listing.transport_links.map(t => <Badge key={t} bg="#EFF6FF" color="#1D4ED8">{t}</Badge>)}
                 </div>
               </Section>
             )}
@@ -337,15 +474,13 @@ export default function ListingDetail() {
             {listing.nearby_places?.length > 0 && (
               <Section title="Nearby Places">
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                  {listing.nearby_places.map(p => (
-                    <Badge key={p} bg="#F5F3FF" color="#6D28D9">{p}</Badge>
-                  ))}
+                  {listing.nearby_places.map(p => <Badge key={p} bg="#F5F3FF" color="#6D28D9">{p}</Badge>)}
                 </div>
               </Section>
             )}
           </div>
 
-          {/* Right: contact card on desktop */}
+          {/* Desktop contact */}
           {!isMobile && (
             <div style={{ position: "sticky", top: "88px" }}>
               <ContactCard />
@@ -356,6 +491,24 @@ export default function ListingDetail() {
             </div>
           )}
         </div>
+
+        {/* Similar listings */}
+        {listing.dublin_area && (
+          <div style={{
+            marginTop: "28px", background: "white", borderRadius: "20px",
+            border: "1px solid #EBEBEB",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.04)", padding: "20px"
+          }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: "16px", fontWeight: "700", color: "#222" }}>
+              More rooms in {listing.dublin_area}
+            </h3>
+            <SimilarListings
+              currentId={listing.id}
+              area={listing.dublin_area}
+              roomType={listing.room_type}
+            />
+          </div>
+        )}
 
         {/* Mobile report link */}
         {isMobile && (
