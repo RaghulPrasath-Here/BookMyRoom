@@ -22,6 +22,8 @@ class ListingCreate(BaseModel):
     contact: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    photos: Optional[List[str]] = []
+    user_id: Optional[str] = None 
 
 class ListingResponse(ListingCreate):
     id: str

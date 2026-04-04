@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from app.routers import listings, search
+from app.routers import listings, search, auth
 from app.config import supabase
 from app.limiter import limiter
 
@@ -24,6 +24,7 @@ app.add_middleware(
 
 app.include_router(listings.router)
 app.include_router(search.router)
+app.include_router(auth.router)
 
 @app.get("/health")
 def health_check():
