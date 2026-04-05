@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../constants";
 import { Helmet } from 'react-helmet-async'
+import { useAuth } from "../context/AuthContext";
 
 const SAMPLE_LISTING = `Dublin 12, Permanent Sharing Accommodation Available (Double bed room with separate toilet) for a Female. Sharing room with a female student 🏠 preferably working professionals, 🚨 Move-in Date: Immediate. 🏢 2 BHK Apartment with 2 DOUBLE Bed Rooms and 2 Bathrooms kitchen and Balcony 📍 Location: within sight from Bluebell Luas stop 💰 Rent: €650 + bills 💰 Deposit: €500 (Refundable) 🚈 2-minute walk to Bluebell Luas stop ☎️ +353***46137`;
 
@@ -10,6 +11,44 @@ export default function Submit() {
   const [rawText, setRawText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const { user } = useAuth();
+
+// Redirect to login if not logged in
+if (!user) {
+  return (
+    <div style={{
+      minHeight: "calc(100vh - 68px)", display: "flex",
+      alignItems: "center", justifyContent: "center",
+      flexDirection: "column", gap: "16px",
+      fontFamily: "-apple-system, sans-serif", textAlign: "center",
+      padding: "24px"
+    }}>
+      <div style={{ fontSize: "48px" }}>🔐</div>
+      <h2 style={{ margin: 0, color: "#222", fontSize: "22px", fontWeight: "800", fontFamily: "Georgia, serif" }}>
+        Login required
+      </h2>
+      <p style={{ color: "#717171", margin: 0, fontSize: "15px" }}>
+        You need an account to post a listing.
+      </p>
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
+        <a href="/login" style={{
+          background: "linear-gradient(135deg, #FF385C, #E31C5F)",
+          color: "white", textDecoration: "none",
+          padding: "12px 24px", borderRadius: "24px",
+          fontSize: "14px", fontWeight: "600",
+          boxShadow: "0 4px 12px rgba(255,56,92,0.3)"
+        }}>Log in</a>
+        <a href="/signup" style={{
+          background: "white", color: "#222",
+          textDecoration: "none", padding: "12px 24px",
+          borderRadius: "24px", fontSize: "14px", fontWeight: "600",
+          border: "1.5px solid #EBEBEB"
+        }}>Create account</a>
+      </div>
+    </div>
+  );
+}
 
   const handleParse = async () => {
     if (!rawText.trim()) {

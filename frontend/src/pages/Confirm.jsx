@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API_BASE } from "../constants";
-import { Helmet } from 'react-helmet-async'
+import { useAuth } from "../context/AuthContext";
 
 const ROOM_TYPES = ["single", "double", "ensuite", "studio", "shared"];
 const GENDER_OPTIONS = ["any", "male", "female", "couple"];
@@ -11,10 +11,9 @@ function Field({ label, children }) {
   return (
     <div style={{ marginBottom: "20px" }}>
       <label style={{
-        display: "block", fontSize: "12px",
-        fontWeight: "700", color: "#717171",
-        marginBottom: "6px", textTransform: "uppercase",
-        letterSpacing: "0.5px"
+        display: "block", fontSize: "12px", fontWeight: "700",
+        color: "#717171", marginBottom: "6px",
+        textTransform: "uppercase", letterSpacing: "0.5px"
       }}>
         {label}
       </label>
@@ -26,17 +25,14 @@ function Field({ label, children }) {
 function TextInput({ value, onChange, placeholder, type = "text" }) {
   return (
     <input
-      type={type}
-      value={value || ""}
-      onChange={e => onChange(e.target.value)}
+      type={type} value={value || ""} onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       style={{
         width: "100%", padding: "12px 14px",
         border: "1.5px solid #EBEBEB", borderRadius: "10px",
         fontSize: "15px", color: "#222", background: "white",
         fontFamily: "inherit", boxSizing: "border-box",
-        transition: "border-color 0.2s",
-        outline: "none"
+        transition: "border-color 0.2s", outline: "none"
       }}
       onFocus={e => e.target.style.borderColor = "#FF385C"}
       onBlur={e => e.target.style.borderColor = "#EBEBEB"}
@@ -48,19 +44,14 @@ function Toggle({ value, onChange, labelOn = "Yes", labelOff = "No" }) {
   return (
     <div style={{ display: "flex", gap: "8px" }}>
       {[true, false].map(opt => (
-        <button
-          key={String(opt)}
-          onClick={() => onChange(opt)}
-          style={{
-            padding: "10px 20px", borderRadius: "20px",
-            fontSize: "14px", fontWeight: "600",
-            border: value === opt ? "2px solid #FF385C" : "1.5px solid #EBEBEB",
-            background: value === opt ? "#FFF1F2" : "white",
-            color: value === opt ? "#FF385C" : "#717171",
-            cursor: "pointer", fontFamily: "inherit",
-            transition: "all 0.15s"
-          }}
-        >
+        <button key={String(opt)} onClick={() => onChange(opt)} style={{
+          padding: "10px 20px", borderRadius: "20px",
+          fontSize: "14px", fontWeight: "600",
+          border: value === opt ? "2px solid #FF385C" : "1.5px solid #EBEBEB",
+          background: value === opt ? "#FFF1F2" : "white",
+          color: value === opt ? "#FF385C" : "#717171",
+          cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s"
+        }}>
           {opt ? labelOn : labelOff}
         </button>
       ))}
@@ -70,16 +61,12 @@ function Toggle({ value, onChange, labelOn = "Yes", labelOff = "No" }) {
 
 function SelectInput({ value, onChange, options }) {
   return (
-    <select
-      value={value || ""}
-      onChange={e => onChange(e.target.value)}
-      style={{
-        width: "100%", padding: "12px 14px",
-        border: "1.5px solid #EBEBEB", borderRadius: "10px",
-        fontSize: "15px", color: "#222", background: "white",
-        fontFamily: "inherit", cursor: "pointer",
-        outline: "none", boxSizing: "border-box"
-      }}
+    <select value={value || ""} onChange={e => onChange(e.target.value)} style={{
+      width: "100%", padding: "12px 14px",
+      border: "1.5px solid #EBEBEB", borderRadius: "10px",
+      fontSize: "15px", color: "#222", background: "white",
+      fontFamily: "inherit", cursor: "pointer", outline: "none", boxSizing: "border-box"
+    }}
       onFocus={e => e.target.style.borderColor = "#FF385C"}
       onBlur={e => e.target.style.borderColor = "#EBEBEB"}
     >
@@ -94,28 +81,19 @@ function SelectInput({ value, onChange, options }) {
 
 function ChipSelect({ value = [], onChange, options }) {
   const toggle = (opt) => {
-    if (value.includes(opt)) {
-      onChange(value.filter(v => v !== opt));
-    } else {
-      onChange([...value, opt]);
-    }
+    if (value.includes(opt)) onChange(value.filter(v => v !== opt));
+    else onChange([...value, opt]);
   };
   return (
     <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
       {options.map(opt => (
-        <button
-          key={opt}
-          onClick={() => toggle(opt)}
-          style={{
-            padding: "8px 16px", borderRadius: "20px",
-            fontSize: "14px", fontWeight: "600",
-            border: value.includes(opt) ? "2px solid #FF385C" : "1.5px solid #EBEBEB",
-            background: value.includes(opt) ? "#FFF1F2" : "white",
-            color: value.includes(opt) ? "#FF385C" : "#717171",
-            cursor: "pointer", fontFamily: "inherit",
-            transition: "all 0.15s"
-          }}
-        >
+        <button key={opt} onClick={() => toggle(opt)} style={{
+          padding: "8px 16px", borderRadius: "20px", fontSize: "14px", fontWeight: "600",
+          border: value.includes(opt) ? "2px solid #FF385C" : "1.5px solid #EBEBEB",
+          background: value.includes(opt) ? "#FFF1F2" : "white",
+          color: value.includes(opt) ? "#FF385C" : "#717171",
+          cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s"
+        }}>
           {opt.charAt(0).toUpperCase() + opt.slice(1)}
         </button>
       ))}
@@ -125,17 +103,12 @@ function ChipSelect({ value = [], onChange, options }) {
 
 function TagInput({ value = [], onChange, placeholder }) {
   const [input, setInput] = useState("");
-
   const add = () => {
     const trimmed = input.trim();
-    if (trimmed && !value.includes(trimmed)) {
-      onChange([...value, trimmed]);
-    }
+    if (trimmed && !value.includes(trimmed)) onChange([...value, trimmed]);
     setInput("");
   };
-
   const remove = (tag) => onChange(value.filter(t => t !== tag));
-
   return (
     <div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
@@ -147,52 +120,152 @@ function TagInput({ value = [], onChange, placeholder }) {
             display: "inline-flex", alignItems: "center", gap: "6px"
           }}>
             {tag}
-            <button
-              onClick={() => remove(tag)}
-              style={{
-                background: "none", border: "none",
-                cursor: "pointer", color: "#AAAAAA",
-                fontSize: "14px", padding: "0", lineHeight: 1
-              }}
-            >×</button>
+            <button onClick={() => remove(tag)} style={{
+              background: "none", border: "none", cursor: "pointer",
+              color: "#AAAAAA", fontSize: "14px", padding: "0", lineHeight: 1
+            }}>×</button>
           </span>
         ))}
       </div>
       <div style={{ display: "flex", gap: "8px" }}>
         <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
+          value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && add()}
           placeholder={placeholder}
           style={{
             flex: 1, padding: "10px 14px",
             border: "1.5px solid #EBEBEB", borderRadius: "10px",
-            fontSize: "14px", color: "#222",
-            fontFamily: "inherit", outline: "none",
-            boxSizing: "border-box"
+            fontSize: "14px", color: "#222", fontFamily: "inherit",
+            outline: "none", boxSizing: "border-box"
           }}
           onFocus={e => e.target.style.borderColor = "#FF385C"}
           onBlur={e => e.target.style.borderColor = "#EBEBEB"}
         />
-        <button
-          onClick={add}
-          style={{
-            padding: "10px 16px", background: "#F7F7F7",
-            border: "1.5px solid #EBEBEB", borderRadius: "10px",
-            fontSize: "13px", fontWeight: "600",
-            color: "#484848", cursor: "pointer", fontFamily: "inherit"
-          }}
-        >
-          Add
-        </button>
+        <button onClick={add} style={{
+          padding: "10px 16px", background: "#F7F7F7",
+          border: "1.5px solid #EBEBEB", borderRadius: "10px",
+          fontSize: "13px", fontWeight: "600",
+          color: "#484848", cursor: "pointer", fontFamily: "inherit"
+        }}>Add</button>
       </div>
     </div>
   );
 }
 
+function PhotoUpload({ photos, setPhotos, getToken }) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files);
+    if (photos.length + files.length > 5) {
+      setUploadError("Maximum 5 photos allowed.");
+      return;
+    }
+    try {
+      setUploading(true);
+      setUploadError(null);
+      const token = await getToken();
+      const uploaded = [];
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch(`${API_BASE}/photos/upload`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData
+        });
+        if (!res.ok) throw new Error("Upload failed");
+        const data = await res.json();
+        uploaded.push(data.url);
+      }
+      setPhotos([...photos, ...uploaded]);
+    } catch {
+      setUploadError("Failed to upload photo. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removePhoto = (url) => setPhotos(photos.filter(p => p !== url));
+
+  return (
+    <div>
+      {/* Photo previews */}
+      {photos.length > 0 && (
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
+          {photos.map((url, i) => (
+            <div key={i} style={{ position: "relative" }}>
+              <img src={url} alt={`photo ${i + 1}`} style={{
+                width: "80px", height: "80px", objectFit: "cover",
+                borderRadius: "10px", border: "1px solid #EBEBEB"
+              }} />
+              <button onClick={() => removePhoto(url)} style={{
+                position: "absolute", top: "-6px", right: "-6px",
+                background: "#FF385C", color: "white", border: "none",
+                borderRadius: "50%", width: "20px", height: "20px",
+                fontSize: "12px", cursor: "pointer", display: "flex",
+                alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+              }}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Upload button */}
+      {photos.length < 5 && (
+        <label style={{
+          display: "inline-flex", alignItems: "center", gap: "8px",
+          background: uploading ? "#F7F7F7" : "white",
+          border: "1.5px dashed #EBEBEB", borderRadius: "10px",
+          padding: "12px 16px", fontSize: "14px", fontWeight: "600",
+          color: "#484848", cursor: uploading ? "not-allowed" : "pointer"
+        }}>
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {uploading ? "Uploading..." : `Add photos (${photos.length}/5)`}
+          <input
+            type="file" accept="image/*" multiple
+            onChange={handleFileChange}
+            disabled={uploading}
+            style={{ display: "none" }}
+          />
+        </label>
+      )}
+
+      {uploadError && (
+        <p style={{ margin: "8px 0 0", fontSize: "13px", color: "#E31C5F" }}>
+          {uploadError}
+        </p>
+      )}
+      <p style={{ margin: "8px 0 0", fontSize: "12px", color: "#AAAAAA" }}>
+        JPEG, PNG or WebP · Max 5MB each · Up to 5 photos
+      </p>
+    </div>
+  );
+}
+
+function SectionHeader({ title }) {
+  return (
+    <p style={{
+      margin: "0 0 20px", fontSize: "13px", fontWeight: "700",
+      color: "#FF385C", textTransform: "uppercase", letterSpacing: "0.5px"
+    }}>
+      {title}
+    </p>
+  );
+}
+
+function Divider() {
+  return <div style={{ borderTop: "1px solid #F7F7F7", margin: "24px 0" }} />;
+}
+
 export default function Confirm() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { getToken } = useAuth();
   const { parsed = {}, raw_text = "" } = location.state || {};
 
   const [form, setForm] = useState({
@@ -215,36 +288,42 @@ export default function Confirm() {
     contact: parsed.contact || ""
   });
 
+  const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const update = (field) => (value) => setForm(f => ({ ...f, [field]: value }));
 
   const handlePublish = async () => {
-    if (!form.contact?.trim()) {
-      setError("Contact number is required.");
-      return;
-    }
-    if (!form.price) {
-      setError("Price is required.");
-      return;
-    }
+    if (!form.contact?.trim()) { setError("Contact number is required."); return; }
+    if (!form.price) { setError("Price is required."); return; }
     try {
       setLoading(true);
       setError(null);
+
+      // Get auth token
+      const token = await getToken();
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       const res = await fetch(`${API_BASE}/listings/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           ...form,
           price: parseFloat(form.price),
           deposit: form.deposit ? parseFloat(form.deposit) : null,
           duration_months: form.duration_months ? parseFloat(form.duration_months) : null,
+          photos
         })
       });
 
       if (!res.ok) throw new Error("Failed to publish");
-
       const data = await res.json();
       navigate("/success", { state: { id: data.id, title: form.title } });
     } catch {
@@ -254,60 +333,48 @@ export default function Confirm() {
     }
   };
 
-  // If no state passed, redirect to submit
   if (!location.state) {
     return (
       <div style={{
-        minHeight: "calc(100vh - 80px)", display: "flex",
+        minHeight: "calc(100vh - 68px)", display: "flex",
         alignItems: "center", justifyContent: "center",
         flexDirection: "column", gap: "16px",
         fontFamily: "-apple-system, sans-serif"
       }}>
         <p style={{ color: "#717171", fontSize: "16px" }}>No listing data found.</p>
         <a href="/submit" style={{
-          background: "#FF385C", color: "white",
-          textDecoration: "none", padding: "12px 24px",
-          borderRadius: "24px", fontSize: "14px", fontWeight: "600"
-        }}>
-          Go back to Submit
-        </a>
+          background: "#FF385C", color: "white", textDecoration: "none",
+          padding: "12px 24px", borderRadius: "24px",
+          fontSize: "14px", fontWeight: "600"
+        }}>Go back to Submit</a>
       </div>
     );
   }
 
   return (
     <div style={{
-      minHeight: "calc(100vh - 80px)",
-      background: "#F7F7F7", padding: "48px 24px",
+      minHeight: "calc(100vh - 68px)", background: "#F7F7F7",
+      padding: "48px 16px",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }}>
-
-  <Helmet>
-    <title>Review Listing — BookMyRoom</title>
-  </Helmet>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
-      <div style={{
-        maxWidth: "680px", margin: "0 auto",
-        animation: "fadeUp 0.5s ease both"
-      }}>
+      <div style={{ maxWidth: "680px", margin: "0 auto", animation: "fadeUp 0.5s ease both" }}>
 
         {/* Header */}
         <div style={{ marginBottom: "32px" }}>
           <a href="/submit" style={{
-            textDecoration: "none", color: "#717171",
-            fontSize: "14px", display: "inline-flex",
-            alignItems: "center", gap: "6px", marginBottom: "20px"
+            textDecoration: "none", color: "#717171", fontSize: "14px",
+            display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "20px"
           }}>
             ← Back to edit
           </a>
           <h1 style={{
-            margin: "0 0 8px", fontSize: "32px",
-            fontWeight: "800", color: "#222222",
-            fontFamily: "Georgia, serif"
+            margin: "0 0 8px", fontSize: "32px", fontWeight: "800",
+            color: "#222222", fontFamily: "Georgia, serif"
           }}>
             Review your listing
           </h1>
@@ -316,13 +383,12 @@ export default function Confirm() {
           </p>
         </div>
 
-        {/* AI notice */}
+        {/* AI success notice */}
         <div style={{
           background: "#F0FDF4", border: "1px solid #BBF7D0",
-          borderRadius: "12px", padding: "14px 18px",
-          marginBottom: "24px", fontSize: "14px",
-          color: "#166534", display: "flex",
-          alignItems: "center", gap: "10px"
+          borderRadius: "12px", padding: "14px 18px", marginBottom: "24px",
+          fontSize: "14px", color: "#166534",
+          display: "flex", alignItems: "center", gap: "10px"
         }}>
           <span style={{ fontSize: "18px" }}>✓</span>
           AI successfully extracted your listing details. Edit anything that looks wrong.
@@ -332,23 +398,13 @@ export default function Confirm() {
         <div style={{
           background: "white", borderRadius: "20px",
           border: "1px solid #EBEBEB",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
-          padding: "28px"
+          boxShadow: "0 4px 24px rgba(0,0,0,0.06)", padding: "28px"
         }}>
 
-          {/* Section: Basic info */}
-          <p style={{
-            margin: "0 0 20px", fontSize: "13px",
-            fontWeight: "700", color: "#FF385C",
-            textTransform: "uppercase", letterSpacing: "0.5px"
-          }}>
-            Basic Info
-          </p>
-
+          <SectionHeader title="Basic Info" />
           <Field label="Title">
             <TextInput value={form.title} onChange={update("title")} placeholder="e.g. Double Room in Dublin 12" />
           </Field>
-
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
             <Field label="Monthly Rent (€)">
               <TextInput value={form.price} onChange={update("price")} type="number" placeholder="650" />
@@ -357,144 +413,90 @@ export default function Confirm() {
               <TextInput value={form.deposit} onChange={update("deposit")} type="number" placeholder="500" />
             </Field>
           </div>
-
           <Field label="Bills Included">
             <Toggle value={form.bills_included} onChange={update("bills_included")} labelOn="Included" labelOff="Not Included" />
           </Field>
 
-          <div style={{ borderTop: "1px solid #F7F7F7", margin: "24px 0" }} />
+          <Divider />
+          <SectionHeader title="Photos" />
+          <Field label={`Add up to 5 photos of the room`}>
+            <PhotoUpload photos={photos} setPhotos={setPhotos} getToken={getToken} />
+          </Field>
 
-          {/* Section: Location */}
-          <p style={{
-            margin: "0 0 20px", fontSize: "13px",
-            fontWeight: "700", color: "#FF385C",
-            textTransform: "uppercase", letterSpacing: "0.5px"
-          }}>
-            Location
-          </p>
-
+          <Divider />
+          <SectionHeader title="Location" />
           <Field label="Full Location">
             <TextInput value={form.location} onChange={update("location")} placeholder="e.g. Bluebell, Dublin 12" />
           </Field>
-
           <Field label="Dublin Area">
             <TextInput value={form.dublin_area} onChange={update("dublin_area")} placeholder="e.g. Dublin 12" />
           </Field>
 
-          <div style={{ borderTop: "1px solid #F7F7F7", margin: "24px 0" }} />
-
-          {/* Section: Availability */}
-          <p style={{
-            margin: "0 0 20px", fontSize: "13px",
-            fontWeight: "700", color: "#FF385C",
-            textTransform: "uppercase", letterSpacing: "0.5px"
-          }}>
-            Availability
-          </p>
-
+          <Divider />
+          <SectionHeader title="Availability" />
           <Field label="Available From">
             <TextInput value={form.available_from} onChange={update("available_from")} type="date" />
           </Field>
-
           <Field label="Listing Type">
             <Toggle value={form.is_permanent} onChange={update("is_permanent")} labelOn="Permanent" labelOff="Temporary" />
           </Field>
-
           {!form.is_permanent && (
             <Field label="Duration (months)">
               <TextInput value={form.duration_months} onChange={update("duration_months")} type="number" placeholder="e.g. 3" />
             </Field>
           )}
 
-          <div style={{ borderTop: "1px solid #F7F7F7", margin: "24px 0" }} />
-
-          {/* Section: Room details */}
-          <p style={{
-            margin: "0 0 20px", fontSize: "13px",
-            fontWeight: "700", color: "#FF385C",
-            textTransform: "uppercase", letterSpacing: "0.5px"
-          }}>
-            Room Details
-          </p>
-
+          <Divider />
+          <SectionHeader title="Room Details" />
           <Field label="Room Type">
             <SelectInput value={form.room_type} onChange={update("room_type")} options={ROOM_TYPES} />
           </Field>
-
           <Field label="Gender Preference">
             <SelectInput value={form.gender_preference} onChange={update("gender_preference")} options={GENDER_OPTIONS} />
           </Field>
-
           <Field label="Suitable For">
             <ChipSelect value={form.occupant_type} onChange={update("occupant_type")} options={OCCUPANT_OPTIONS} />
           </Field>
 
-          <div style={{ borderTop: "1px solid #F7F7F7", margin: "24px 0" }} />
-
-          {/* Section: Extras */}
-          <p style={{
-            margin: "0 0 20px", fontSize: "13px",
-            fontWeight: "700", color: "#FF385C",
-            textTransform: "uppercase", letterSpacing: "0.5px"
-          }}>
-            Extras
-          </p>
-
+          <Divider />
+          <SectionHeader title="Extras" />
           <Field label="Amenities">
             <TagInput value={form.amenities} onChange={update("amenities")} placeholder="e.g. WiFi, washing machine..." />
           </Field>
-
           <Field label="Transport Links">
             <TagInput value={form.transport_links} onChange={update("transport_links")} placeholder="e.g. Bluebell Luas, Bus 13..." />
           </Field>
-
           <Field label="Nearby Places">
             <TagInput value={form.nearby_places} onChange={update("nearby_places")} placeholder="e.g. UCD, St James Hospital..." />
           </Field>
 
-          <div style={{ borderTop: "1px solid #F7F7F7", margin: "24px 0" }} />
-
-          {/* Section: Contact */}
-          <p style={{
-            margin: "0 0 20px", fontSize: "13px",
-            fontWeight: "700", color: "#FF385C",
-            textTransform: "uppercase", letterSpacing: "0.5px"
-          }}>
-            Contact
-          </p>
-
+          <Divider />
+          <SectionHeader title="Contact" />
           <Field label="Phone Number">
             <TextInput value={form.contact} onChange={update("contact")} placeholder="+353 87 123 4567" />
           </Field>
         </div>
 
-        {/* Error */}
         {error && (
           <div style={{
             background: "#FFF1F2", border: "1px solid #FFD6DC",
             borderRadius: "12px", padding: "14px 18px",
-            color: "#E31C5F", fontSize: "14px",
-            marginTop: "20px"
+            color: "#E31C5F", fontSize: "14px", marginTop: "20px"
           }}>
             {error}
           </div>
         )}
 
-        {/* Publish button */}
         <button
           onClick={handlePublish}
           disabled={loading}
           style={{
             width: "100%", marginTop: "20px",
-            background: loading
-              ? "#CCCCCC"
-              : "linear-gradient(135deg, #FF385C, #E31C5F)",
-            color: "white", border: "none",
-            borderRadius: "14px", padding: "18px",
+            background: loading ? "#CCCCCC" : "linear-gradient(135deg, #FF385C, #E31C5F)",
+            color: "white", border: "none", borderRadius: "14px", padding: "18px",
             fontSize: "17px", fontWeight: "700",
             cursor: loading ? "not-allowed" : "pointer",
-            display: "flex", alignItems: "center",
-            justifyContent: "center", gap: "10px",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
             boxShadow: loading ? "none" : "0 4px 16px rgba(255,56,92,0.3)",
             fontFamily: "inherit", transition: "opacity 0.2s"
           }}
@@ -511,9 +513,7 @@ export default function Confirm() {
               }} />
               Publishing...
             </>
-          ) : (
-            "Publish Listing"
-          )}
+          ) : "Publish Listing"}
         </button>
 
         <p style={{
