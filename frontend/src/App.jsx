@@ -7,6 +7,9 @@ import ListingDetail from './pages/ListingDetail'
 import Browse from './pages/Browse'
 import Success from './pages/Success'
 import NotFound from './pages/NotFound'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import MyListings from './pages/MyListings'
 
 export default function App() {
   return (
@@ -21,6 +24,9 @@ export default function App() {
           <Route path="/listings/:id" element={<ListingDetail />} />
           <Route path="/success" element={<Success />} />
           <Route path="*" element={<NotFound />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/my-listings" element={<MyListings />} />
         </Routes>
       </div>
     </BrowserRouter>
