@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Request
-from app.config import supabase
+from app.config import supabase_admin
 from app.auth import get_current_user
 from app.limiter import limiter
 import uuid
@@ -41,12 +41,12 @@ async def upload_photo(
         filename = f"{current_user.id}/{uuid.uuid4()}.{ext}"
 
         # Upload to Supabase Storage
-        result = supabase.storage\
+        result = supabase_admin.storage\
             .from_("listing-photos")\
             .upload(filename, content, {"content-type": file.content_type})
 
         # Get the public URL
-        public_url = supabase.storage\
+        public_url = supabase_admin.storage\
             .from_("listing-photos")\
             .get_public_url(filename)
 
@@ -72,7 +72,7 @@ async def delete_photo(
                 detail="Not authorised to delete this photo"
             )
 
-        supabase.storage\
+        supabase_admin.storage\
             .from_("listing-photos")\
             .remove([filename])
 

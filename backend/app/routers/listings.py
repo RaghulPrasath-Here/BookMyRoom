@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from app.models import ListingCreate, ParseRequest
-from app.config import supabase
+from app.config import supabase, supabase_admin
 from app.services.parser import parse_listing as ai_parse
 from app.services.embeddings import generate_embedding
 from app.limiter import limiter
@@ -40,7 +40,7 @@ async def create_listing(
         if listing_dict.get("available_from"):
             listing_dict["available_from"] = str(listing_dict["available_from"])
 
-        result = supabase.table("listings").insert(listing_dict).execute()
+        result = supabase_admin.table("listings").insert(listing_dict).execute()
 
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to save listing")
@@ -85,7 +85,7 @@ async def get_my_listings(
 ):
     """Returns all listings created by the logged in user"""
     try:
-        result = supabase.table("listings")\
+        result = supabase_admin.table("listings")\
             .select("*")\
             .eq("user_id", current_user.id)\
             .order("created_at", desc=True)\
@@ -118,7 +118,7 @@ async def update_listing(
     """Only the owner or admin can update a listing"""
     try:
         # Check ownership
-        existing = supabase.table("listings")\
+        existing = supabase_admin.table("listings")\
             .select("user_id")\
             .eq("id", listing_id)\
             .execute()
@@ -162,7 +162,7 @@ async def delete_listing(
 ):
     """Only the owner or admin can delete a listing"""
     try:
-        existing = supabase.table("listings")\
+        existing = supabase_admin.table("listings")\
             .select("user_id")\
             .eq("id", listing_id)\
             .execute()
@@ -177,7 +177,7 @@ async def delete_listing(
             raise HTTPException(status_code=403, detail="Not authorised to delete this listing")
 
         # Soft delete — just mark inactive
-        supabase.table("listings")\
+        supabase_admin.table("listings")\
             .update({"is_active": False})\
             .eq("id", listing_id)\
             .execute()
