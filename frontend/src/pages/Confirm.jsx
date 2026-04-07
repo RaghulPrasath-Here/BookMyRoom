@@ -276,7 +276,7 @@ export default function Confirm() {
     deposit: parsed.deposit || "",
     location: parsed.location || "",
     dublin_area: parsed.dublin_area || "",
-    available_from: parsed.available_from || "",
+    available_from: parsed.available_from || new Date().toISOString().split("T")[0],
     is_permanent: parsed.is_permanent !== false,
     duration_months: parsed.duration_months || "",
     room_type: parsed.room_type || "double",

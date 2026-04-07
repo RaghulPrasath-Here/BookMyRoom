@@ -491,6 +491,54 @@ export default function ListingDetail() {
             </div>
           )}
         </div>
+        {/* Photos */}
+        {listing.photos?.length > 0 && (
+          <div style={{
+            marginTop: "16px", background: "white",
+            borderRadius: "20px", border: "1px solid #EBEBEB",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.04)", padding: "20px"
+          }}>
+            <h3 style={{
+              margin: "0 0 16px", fontSize: "15px", fontWeight: "700", color: "#222",
+              paddingBottom: "10px", borderBottom: "1px solid #F0F0F0"
+            }}>
+              Photos
+            </h3>
+            <div style={{
+                display: "grid",
+                gridTemplateColumns: listing.photos.length === 1
+                  ? "1fr"
+                  : listing.photos.length === 2
+                  ? "1fr 1fr"
+                  : listing.photos.length === 3
+                  ? "1fr 1fr 1fr"
+                  : "repeat(2, 1fr)",
+                gap: "8px"
+              }}>
+                {listing.photos.map((url, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={url}
+                      alt={`Room photo ${i + 1}`}
+                      style={{
+                        width: "100%",
+                        aspectRatio: listing.photos.length === 1 ? "16/9" : "4/3",
+                        objectFit: "cover", borderRadius: "10px",
+                        border: "1px solid #EBEBEB",
+                        transition: "opacity 0.2s",
+                        cursor: "pointer", display: "block"
+                      }}
+                      onMouseEnter={e => e.target.style.opacity = "0.85"}
+                      onMouseLeave={e => e.target.style.opacity = "1"}
+                    />
+                  </a>
+                ))}
+              </div>
+            <p style={{ margin: "10px 0 0", fontSize: "12px", color: "#AAAAAA" }}>
+              Click any photo to view full size
+            </p>
+          </div>
+        )}
 
         {/* Similar listings */}
         {listing.dublin_area && (

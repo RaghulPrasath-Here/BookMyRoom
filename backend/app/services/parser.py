@@ -3,6 +3,8 @@ from app.config import OPENAI_API_KEY
 import json
 import httpx
 import os
+from datetime import date
+
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -17,7 +19,7 @@ a valid JSON object with no extra text, no markdown, no backticks.
 
 Fields to extract:
 {
-  "title": "short descriptive title e.g. Double Room in Dublin 12",
+  "title": "short concise title MAX 5 words e.g. 'Double Room in Dublin 12' or 'Ensuite in Rathmines' or 'Studio near City Centre'. NEVER include full address or long descriptions.",
   "price": number or null (monthly rent in euros, numbers only),
   "bills_included": true or false,
   "deposit": number or null,
@@ -51,7 +53,7 @@ def parse_listing(raw_text: str) -> dict:
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"Parse this listing:\n\n{raw_text}"}
+                {"role": "user", "content": f"Today's date is {date.today()}. Parse this listing:\n\n{raw_text}"}
             ],
             temperature=0, 
             max_tokens=1000
