@@ -347,29 +347,39 @@ export default function ListingDetail() {
       <style>{`@keyframes fadeUp { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)} }`}</style>
 
       {/* Hero banner */}
-      <div style={{
-        height: "clamp(160px, 30vw, 240px)",
-        background: `linear-gradient(135deg, ${gradient})`,
-        display: "flex", alignItems: "center",
-        justifyContent: "center", position: "relative"
-      }}>
-        <span style={{ fontSize: "clamp(48px, 12vw, 72px)", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.15))" }}>
-          {emoji}
-        </span>
-        <a href="/" style={{
-          position: "absolute", top: "16px", left: "16px",
-          textDecoration: "none", background: "rgba(255,255,255,0.95)",
-          color: "#222", borderRadius: "24px", padding: "7px 14px",
-          fontSize: "13px", fontWeight: "600", boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
-        }}>← Back</a>
-        <div style={{
-          position: "absolute", top: "16px", right: "16px",
-          background: "rgba(255,255,255,0.95)", borderRadius: "20px",
-          padding: "5px 12px", fontSize: "11px", fontWeight: "600", color: "#717171"
-        }}>
-          {daysAgo(listing.created_at)}
-        </div>
-      </div>
+<div style={{
+  height: "clamp(200px, 35vw, 320px)",
+  position: "relative", overflow: "hidden"
+}}>
+  <img
+    src="/banner.png"
+    alt="Room"
+    style={{
+      width: "100%", height: "100%",
+      objectFit: "cover", objectPosition: "center center"
+    }}
+  />
+  <div style={{
+    position: "absolute", inset: 0,
+    background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 50%)"
+  }} />
+  {/* Back button */}
+  <a href="/" style={{
+    position: "absolute", top: "16px", left: "16px",
+    textDecoration: "none", background: "rgba(255,255,255,0.95)",
+    color: "#222", borderRadius: "24px", padding: "7px 14px",
+    fontSize: "13px", fontWeight: "600",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
+  }}>← Back</a>
+  {/* Days ago */}
+  <div style={{
+    position: "absolute", top: "16px", right: "16px",
+    background: "rgba(255,255,255,0.95)", borderRadius: "20px",
+    padding: "5px 12px", fontSize: "11px", fontWeight: "600", color: "#717171"
+  }}>
+    {daysAgo(listing.created_at)}
+  </div>
+</div>
 
       {/* Content */}
       <div style={{

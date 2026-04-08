@@ -88,6 +88,7 @@ async def get_my_listings(
         result = supabase_admin.table("listings")\
             .select("*")\
             .eq("user_id", current_user.id)\
+            .eq("is_active", True)\
             .order("created_at", desc=True)\
             .execute()
         return {"listings": result.data, "total": len(result.data)}
