@@ -2,6 +2,7 @@ import re
 import json
 from openai import OpenAI
 from app.config import OPENAI_API_KEY, supabase
+from typing import Optional
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -95,7 +96,7 @@ def resolve_area_synonyms(area: str) -> list:
     return [area]
 
 
-def infer_price_from_language(query: str) -> int | None:
+def infer_price_from_language(query: str) -> Optional[int]:
     """Check if query contains vague price language and return a max price"""
     query_lower = query.lower()
     for hint, price in PRICE_HINTS.items():
@@ -114,41 +115,41 @@ def extract_filters_from_query(query: str) -> dict:
         messages=[
             {
                 "role": "system",
-                "content": """You are a Dublin accommodation search assistant.
-Extract search filters from the user's query.
+                "content": """You are a Dublin accommodation search expert with deep knowledge 
+                    of Dublin's geography, neighbourhoods, transport links, and landmarks.
 
-IMPORTANT DUBLIN GEOGRAPHY — know these facts:
-- "city centre" / "city center" / "town" / "centre" = Dublin 1 or Dublin 2
-- "southside" = Dublin 4, Dublin 6, Rathmines, Ranelagh
-- "northside" = Dublin 7, Dublin 9
-- "near UCD" or "Belfield" = Dublin 4
-- "near NCI" or "near Connolly Station" = Dublin 1
-- "near TCD" or "near Trinity" = Dublin 2
-- "near DCU" = Dublin 9
-- "near St James Hospital" or "near Heuston" = Dublin 8
-- Citywest, Tallaght, Swords, Blanchardstown are SUBURBS — NOT city centre
-- "affordable" / "cheap" / "budget" = max price around €600-650
-- "temp" / "temporary" / "short term" / "short stay" = is_permanent: false
-- "long term" / "permanent" = is_permanent: true
+                    When given a search query, use YOUR OWN KNOWLEDGE to:
+                    1. Identify the Dublin area (even if only a landmark is mentioned)
+                    2. Identify nearby transport links for that area
+                    3. Identify nearby places that listings in that area might mention
 
-Return ONLY a valid JSON object with these fields (null if not mentioned):
-{
-  "dublin_area": "exact area name as it would appear in listings, or null",
-  "landmark": "specific landmark, college, hospital, Luas stop or null",
-  "max_price": number or null,
-  "is_permanent": true/false or null,
-  "gender_preference": "male/female/couple/any or null",
-  "is_city_centre": true if user wants city centre / central location, false otherwise
-}
+                    You do NOT just extract from the query — you reason about it.
 
-Examples:
-- "room in city centre" → dublin_area: "city centre", is_city_centre: true
-- "near UCD" → dublin_area: "Dublin 4", landmark: "UCD"
-- "cheap room for female" → max_price: 650, gender_preference: "female"
-- "temp room 3 months" → is_permanent: false
-- "place near Luas" → landmark: "Luas"
+                    Examples of how to reason:
+                    - "near Guinness Storehouse" → you know this is Dublin 8, near Luas Red Line, 
+                    near St James Hospital, Heuston Station
+                    - "near Croke Park" → you know this is Dublin 3, near Bus 3, 11, 16
+                    - "near Temple Bar" → you know this is Dublin 2, near Luas Green Line, 
+                    near Trinity College
+                    - "near Google offices" → you know Google is in Grand Canal Dock, Dublin 2
+                    - "near the Aviva" → you know Aviva Stadium is in Dublin 4, Ballsbridge, 
+                    near Dart station
+                    - "near city centre" → Dublin 1 or Dublin 2, NOT Citywest or Tallaght
 
-Return ONLY the JSON, nothing else."""
+                    Return ONLY a valid JSON object:
+                    {
+                    "dublin_area": "the most accurate Dublin area name (e.g. Dublin 8, Rathmines)",
+                    "landmark": "the specific landmark or place mentioned",
+                    "nearby_places": ["list of places GPT knows are near this location"],
+                    "transport_links": ["list of transport GPT knows serves this area"],
+                    "max_price": number or null,
+                    "is_permanent": true/false or null,
+                    "gender_preference": "male/female/couple/any or null",
+                    "is_city_centre": true if central Dublin location
+                    }
+
+                    Use your knowledge. Fill in what you know even if the query doesn't say it explicitly.
+                    Return ONLY the JSON."""
             },
             {
                 "role": "user",
@@ -156,7 +157,7 @@ Return ONLY the JSON, nothing else."""
             }
         ],
         temperature=0,
-        max_tokens=200
+        max_tokens=300
     )
     try:
         return json.loads(response.choices[0].message.content.strip())
@@ -181,8 +182,11 @@ def listing_matches_any_area(listing: dict, areas: list) -> bool:
     return False
 
 
-def landmark_matches(listing: dict, landmark: str) -> bool:
-    """Check if a landmark appears in listing's nearby places, transport or location"""
+def landmark_matches(listing: dict, landmark: str, gpt_nearby: list = None, gpt_transport: list = None) -> bool:
+    """
+    Check if listing matches the landmark or any of the
+    GPT-reasoned nearby places and transport links for that area.
+    """
     if not landmark:
         return False
 
@@ -195,7 +199,23 @@ def landmark_matches(listing: dict, landmark: str) -> bool:
     for link in listing.get("transport_links") or []:
         fields.append(link)
 
-    return any(landmark.lower() in field.lower() for field in fields)
+    # Check direct landmark match
+    if any(landmark.lower() in field.lower() for field in fields):
+        return True
+
+    if gpt_nearby:
+        for gpt_place in gpt_nearby:
+            for field in fields:
+                if gpt_place.lower() in field.lower():
+                    return True
+
+    if gpt_transport:
+        for gpt_link in gpt_transport:
+            for field in fields:
+                if gpt_link.lower() in field.lower():
+                    return True
+
+    return False
 
 
 def boost_and_sort(listings: list, final_areas: list) -> list:
@@ -243,9 +263,14 @@ def search_listings(
     print(f"AI extracted filters: {ai_filters}")
 
     # Resolve final filter values
-    # Explicit filters passed in take priority over AI-extracted ones
     raw_area = dublin_area or ai_filters.get("dublin_area")
     final_areas = resolve_area_synonyms(raw_area) if raw_area else []
+
+    if not final_areas and ai_filters.get("landmark"):
+        landmark_areas = resolve_area_synonyms(ai_filters.get("landmark").lower())
+        if landmark_areas:
+            final_areas = landmark_areas
+            print(f"Resolved landmark '{ai_filters.get('landmark')}' to areas: {landmark_areas}")
 
     # Price 
     final_max_price = (
@@ -262,6 +287,8 @@ def search_listings(
     final_gender = ai_filters.get("gender_preference")
     final_landmark = ai_filters.get("landmark")
     is_city_centre = ai_filters.get("is_city_centre", False)
+    gpt_nearby = ai_filters.get("nearby_places", [])
+    gpt_transport = ai_filters.get("transport_links", [])
 
     # Vector similarity search
     result = supabase.rpc(
@@ -298,7 +325,7 @@ def search_listings(
     if final_landmark:
         listings = [
             l for l in listings
-            if landmark_matches(l, final_landmark)
+            if landmark_matches(l, final_landmark, gpt_nearby, gpt_transport)
         ]
 
     # Permanent/temporary filter
