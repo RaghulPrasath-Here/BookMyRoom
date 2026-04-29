@@ -144,12 +144,6 @@ function SimilarListings({ currentId, area, roomType }) {
 
   if (similar.length === 0) return null;
 
-  const gradients = {
-    ensuite: "#667eea, #764ba2", studio: "#f093fb, #f5576c",
-    double: "#4facfe, #00f2fe", single: "#43e97b, #38f9d7", shared: "#fa709a, #fee140"
-  };
-  const emojis = { ensuite: "🛁", studio: "🏢", double: "🛏️", single: "🛏️", shared: "🏠" };
-
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "16px" }}>
       {similar.map(item => (
@@ -171,11 +165,19 @@ function SimilarListings({ currentId, area, roomType }) {
           >
             <div style={{
               height: "80px",
-              background: `linear-gradient(135deg, ${gradients[item.room_type] || "#4facfe, #00f2fe"})`,
-              display: "flex", alignItems: "center",
-              justifyContent: "center", fontSize: "28px"
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: "14px 14px 0 0"
             }}>
-              {emojis[item.room_type] || "🏠"}
+              <img
+                src="/banner.png"
+                alt="Room"
+                style={{
+                  width: "100%", height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center center"
+                }}
+              />
             </div>
             <div style={{ padding: "12px" }}>
               <p style={{

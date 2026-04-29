@@ -38,6 +38,17 @@ export default function Navbar() {
         }}>
           Browse
         </a>
+        
+          <a href="/submit" style={{
+            textDecoration: "none",
+            background: "linear-gradient(135deg, #FF385C, #E31C5F)",
+            color: "white", fontSize: "13px", fontWeight: "600",
+            padding: "10px 16px", borderRadius: "24px",
+            boxShadow: "0 4px 12px rgba(255,56,92,0.3)",
+            whiteSpace: "nowrap"
+          }}>
+            + Post a Room
+          </a>
 
         {user ? (
           /* Logged in state */
@@ -94,7 +105,6 @@ export default function Navbar() {
                   </div>
                   {[
                     { label: "My Listings", href: "/my-listings" },
-                    { label: "Post a Room", href: "/submit" },
                   ].map(item => (
                     <a key={item.label} href={item.href} style={{
                       display: "block", padding: "12px 16px",
@@ -135,16 +145,7 @@ export default function Navbar() {
             }}>
               Log in
             </a>
-            <a href="/submit" style={{
-              textDecoration: "none",
-              background: "linear-gradient(135deg, #FF385C, #E31C5F)",
-              color: "white", fontSize: "13px", fontWeight: "600",
-              padding: "10px 16px", borderRadius: "24px",
-              boxShadow: "0 4px 12px rgba(255,56,92,0.3)",
-              whiteSpace: "nowrap"
-            }}>
-              + Post a Room
-            </a>
+            
           </>
         )}
       </div>

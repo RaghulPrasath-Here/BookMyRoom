@@ -4,6 +4,68 @@ import { Helmet } from "react-helmet-async";
 import { useAuth } from "../context/AuthContext";
 import { API_BASE } from "../constants";
 
+function ConfirmModal({ listing, onConfirm, onCancel }) {
+  return (
+    <>
+      
+      <div
+        onClick={onCancel}
+        style={{
+          position: "fixed", inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          zIndex: 200
+        }}
+      />
+      
+      <div style={{
+        position: "fixed", top: "50%", left: "50%",
+        transform: "translate(-50%, -50%)",
+        background: "white", borderRadius: "20px",
+        padding: "28px", width: "90%", maxWidth: "400px",
+        zIndex: 201, boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+        fontFamily: "-apple-system, sans-serif"
+      }}>
+        <h3 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: "700", color: "#222" }}>
+          Delete listing?
+        </h3>
+        <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#717171", lineHeight: "1.6" }}>
+          <strong style={{ color: "#222" }}>{listing?.title}</strong> will be permanently removed
+          and can't be recovered.
+        </p>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            onClick={onCancel}
+            style={{
+              flex: 1, padding: "12px",
+              background: "white", color: "#222",
+              border: "1.5px solid #EBEBEB",
+              borderRadius: "12px", fontSize: "14px",
+              fontWeight: "600", cursor: "pointer",
+              fontFamily: "inherit"
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              flex: 1, padding: "12px",
+              background: "linear-gradient(135deg, #FF385C, #E31C5F)",
+              color: "white", border: "none",
+              borderRadius: "12px", fontSize: "14px",
+              fontWeight: "700", cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: "0 4px 12px rgba(255,56,92,0.3)"
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function MyListings() {
   const { user, getToken, logout } = useAuth();
   const navigate = useNavigate();
@@ -11,6 +73,7 @@ export default function MyListings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [confirmListing, setConfirmListing] = useState(null); 
 
   useEffect(() => {
     if (!user) { navigate("/login"); return; }
@@ -33,22 +96,23 @@ export default function MyListings() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this listing?")) return;
-    try {
-      setDeletingId(id);
-      const token = await getToken();
-      await fetch(`${API_BASE}/listings/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setListings(prev => prev.filter(l => l.id !== id));
-    } catch {
-      alert("Failed to delete listing. Please try again.");
-    } finally {
-      setDeletingId(null);
-    }
-  };
+const handleDelete = async () => {
+  if (!confirmListing) return;
+  try {
+    setDeletingId(confirmListing.id);
+    const token = await getToken();
+    await fetch(`${API_BASE}/listings/${confirmListing.id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setListings(prev => prev.filter(l => l.id !== confirmListing.id));
+    setConfirmListing(null);
+  } catch {
+    alert("Failed to delete listing. Please try again.");
+  } finally {
+    setDeletingId(null);
+  }
+};
 
   const handleLogout = async () => {
     await logout();
@@ -185,7 +249,7 @@ export default function MyListings() {
                     View
                   </a>
                   <button
-                    onClick={() => handleDelete(listing.id)}
+                    onClick={() => setConfirmListing(listing)}
                     disabled={deletingId === listing.id}
                     style={{
                       background: deletingId === listing.id ? "#F7F7F7" : "#FFF1F2",
@@ -204,6 +268,13 @@ export default function MyListings() {
           </div>
         )}
       </div>
+      {confirmListing && (
+        <ConfirmModal
+          listing={confirmListing}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmListing(null)}
+        />
+      )}
     </div>
   );
 }

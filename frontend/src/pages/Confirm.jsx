@@ -473,7 +473,42 @@ export default function Confirm() {
           <Divider />
           <SectionHeader title="Contact" />
           <Field label="Phone Number">
-            <TextInput value={form.contact} onChange={update("contact")} placeholder="+353 87 123 4567" />
+            <div style={{ display: "flex", alignItems: "center", gap: "0" }}>
+              <div style={{
+                padding: "12px 14px",
+                background: "#F7F7F7",
+                border: "1.5px solid #EBEBEB",
+                borderRight: "none",
+                borderRadius: "10px 0 0 10px",
+                fontSize: "15px", color: "#484848",
+                fontWeight: "600", whiteSpace: "nowrap"
+              }}>
+                +353
+              </div>
+              <input
+                type="tel"
+                value={form.contact?.replace(/^\+?353/, "") || ""}
+                onChange={e => {
+                  const digits = e.target.value.replace(/[^0-9]/g, "".slice(0,9));
+                  update("contact")(`+353${digits}`);
+                }}
+                maxLength={9}
+                placeholder="87 123 4567"
+                style={{
+                  flex: 1, padding: "12px 14px",
+                  border: "1.5px solid #EBEBEB",
+                  borderRadius: "0 10px 10px 0",
+                  fontSize: "15px", color: "#222",
+                  fontFamily: "inherit", outline: "none",
+                  boxSizing: "border-box"
+                }}
+                onFocus={e => e.target.style.borderColor = "#FF385C"}
+                onBlur={e => e.target.style.borderColor = "#EBEBEB"}
+              />
+            </div>
+            <p style={{ margin: "6px 0 0", fontSize: "12px", color: "#AAAAAA" }}>
+              Enter your number without the country code
+            </p>
           </Field>
         </div>
 

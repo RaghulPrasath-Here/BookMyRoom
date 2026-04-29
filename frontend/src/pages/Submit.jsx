@@ -267,7 +267,7 @@ if (!user) {
           </div>
         </div>
 
-        {/* Sample listing */}
+        {/* Sample listing
         <div style={{
           marginTop: "24px", background: "white",
           borderRadius: "16px", border: "1px solid #EBEBEB",
@@ -305,7 +305,7 @@ if (!user) {
           }}>
             {SAMPLE_LISTING}
           </p>
-        </div>
+        </div> */}
 
         {/* Trust note */}
         <p style={{
@@ -313,7 +313,7 @@ if (!user) {
           color: "#AAAAAA", marginTop: "20px", lineHeight: "1.6"
         }}>
           Your listing will be identified by your contact number.<br />
-          To remove a listing, contact us.
+          So kindly mention your contact number
         </p>
       </div>
     </div>
